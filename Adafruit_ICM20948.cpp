@@ -4,6 +4,7 @@
 //#include <Wire.h>
 #include "Adafruit_ICM20948.h"
 #include "Adafruit_ICM20X.h"
+#include "main.h"
 /*!
  *    @brief  Instantiates a new ICM20948 class!
  */
@@ -25,14 +26,15 @@ Adafruit_ICM20948::Adafruit_ICM20948(void) {
 bool Adafruit_ICM20948::begin_I2C(uint8_t i2c_address, I2C_HandleTypeDef *i2c_handle, int32_t sensor_id) {
 
 
-	i2c_han = i2c_handle;
-	i2c_addr = i2c_address;
+	i2c_han = &hi2c3;
+	i2c_addr = i2c_address << 1;
 
 	bool init_success = _init(sensor_id);
 
-	if (!setupMag()) {
-		return false;
-	}
+	// todo: the below function doesnt execute properly, not sure why yet (or if its needed)
+//	if (!setupMag()) {
+//		return false;
+//	}
 
 	return init_success;
 

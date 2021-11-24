@@ -96,8 +96,8 @@ public:
 	bool setMagDataRate(ak09916_data_rate_t rate);
 
 private:
-	I2C_HandleTypeDef *i2c_han = NULL;///< Pointer to I2C bus interface
-	uint8_t i2c_addr = 0;
+//	I2C_HandleTypeDef *i2c_han = NULL;///< Pointer to I2C bus interface
+//	uint8_t i2c_addr = 0;
 
 	uint8_t readMagRegister(uint8_t reg_addr);
 	bool writeMagRegister(uint8_t reg_addr, uint8_t value);

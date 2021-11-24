@@ -787,7 +787,6 @@ uint8_t Adafruit_ICM20X::readRegisterBits(uint16_t reg, uint8_t pos, uint8_t bit
 	return register_value >> pos;
 }
 
-
 uint8_t Adafruit_ICM20X::readRegisterByte(uint16_t mem_addr) {
 	uint8_t data;
 	HAL_I2C_Mem_Read(i2c_han, i2c_addr, mem_addr, 1, &data, 1, 10);
