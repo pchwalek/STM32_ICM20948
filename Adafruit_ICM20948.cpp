@@ -30,7 +30,7 @@ bool Adafruit_ICM20948::begin_I2C(uint8_t i2c_address, I2C_HandleTypeDef *i2c_ha
 	i2c_addr = i2c_address << 1;
 
 	bool init_success = _init(sensor_id);
-
+//	if(init_success) init_success = setupMag();
 	// todo: the below function doesnt execute properly, not sure why yet (or if its needed)
 //	if (!setupMag()) {
 //		return false;
@@ -235,6 +235,28 @@ bool Adafruit_ICM20948::setMagDataRate(ak09916_data_rate_t rate) {
 	bool success = writeMagRegister(AK09916_CNTL2, AK09916_MAG_DATARATE_SHUTDOWN);
 	HAL_Delay(1);
 	return writeMagRegister(AK09916_CNTL2, rate) && success;
+}
+
+
+bool Adafruit_ICM20948::getSample(imu_sample* data) {
+  data->timestamp = HAL_GetTick();
+  _read();
+
+	data->gyroX = gyroX;
+	data->gyroY = gyroY;
+	data->gyroZ = gyroZ;
+
+	data->magX = magX;
+	data->magY = magY;
+	data->magZ = magZ;
+
+	data->accX = accX;
+	data->accY = accY;
+	data->accZ = accZ;
+
+	data->temperature = (temperature / 333.87) + 21.0;
+
+	return true;
 }
 
 

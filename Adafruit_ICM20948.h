@@ -73,6 +73,20 @@ typedef enum {
 	AK09916_MAG_DATARATE_100_HZ = 0x8, ///< updates at 100Hz
 } ak09916_data_rate_t;
 
+typedef struct imu_samples{
+	uint32_t timestamp;
+	float temperature, ///< Last reading's temperature (C)
+			accX,          ///< Last reading's accelerometer X axis m/s^2
+			accY,          ///< Last reading's accelerometer Y axis m/s^2
+			accZ,          ///< Last reading's accelerometer Z axis m/s^2
+			gyroX,         ///< Last reading's gyro X axis in rad/s
+			gyroY,         ///< Last reading's gyro Y axis in rad/s
+			gyroZ,         ///< Last reading's gyro Z axis in rad/s
+			magX,          ///< Last reading's mag X axis in rad/s
+			magY,          ///< Last reading's mag Y axis in rad/s
+			magZ;      ///< Last reading's mag Z axis in rad/s
+}imu_sample;
+
 /*!
  *    @brief  Class that stores state and functions for interacting with
  *            the ST ICM2948 9-DoF Accelerometer, gyro, and magnetometer
@@ -92,8 +106,10 @@ public:
 	icm20948_gyro_range_t getGyroRange(void);
 	void setGyroRange(icm20948_gyro_range_t new_gyro_range);
 
+
 	ak09916_data_rate_t getMagDataRate(void);
 	bool setMagDataRate(ak09916_data_rate_t rate);
+	bool getSample(imu_sample* data);
 
 private:
 //	I2C_HandleTypeDef *i2c_han = NULL;///< Pointer to I2C bus interface

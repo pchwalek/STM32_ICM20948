@@ -178,11 +178,13 @@ bool Adafruit_ICM20X::_init(int32_t sensor_id) {
   modifyRegisterBit(ICM20X_B0_PWR_MGMT_1, 0, 6); // take out of default sleep state
 
   // 3 will be the largest range for either sensor
+  enableGyrolDLPF(true,ICM20X_GYRO_FREQ_196_6_HZ);
   writeGyroRange(3);
+  enableAccelDLPF(true,ICM20X_ACCEL_FREQ_246_0_HZ);
   writeAccelRange(3);
 
-  // 1100Hz/(1+10) = 100Hz
-  setGyroRateDivisor(10);
+  // 1125Hz/(1+10) = 53.57Hz
+  setGyroRateDivisor(20);
 
   // # 1125Hz/(1+20) = 53.57Hz
   setAccelRateDivisor(20);
@@ -792,6 +794,7 @@ uint8_t Adafruit_ICM20X::readRegisterByte(uint16_t mem_addr) {
 	HAL_I2C_Mem_Read(i2c_han, i2c_addr, mem_addr, 1, &data, 1, 10);
 	return data;
 }
+
 
 /**************************************************************************/
 /*!
