@@ -76,6 +76,9 @@ extern "C" {
 #define ICM20948_CHIP_ID 0xEA ///< ICM20948 default device id from WHOAMI
 #define ICM20649_CHIP_ID 0xE1 ///< ICM20649 default device id from WHOAMI
 
+#define ICM20948_MAG_CNTRL_2_REG	0x31
+#define ICM20948_MAG_ADDRESS  0x0C // AK09916 Magnetometer
+
 /** Options for `enableAccelDLPF` */
 typedef enum {
 	ICM20X_ACCEL_FREQ_246_0_HZ = 0x1,
@@ -99,6 +102,15 @@ typedef enum {
 	ICM20X_GYRO_FREQ_361_4_HZ = 0x7,
 
 } icm20x_gyro_cutoff_t;
+
+/** Options for `enableGyroDLPF` */
+typedef enum {
+	ICM20X_MAG_10_HZ = 0x2,
+	ICM20X_MAG_20_HZ = 0x4,
+	ICM20X_MAG_50_HZ = 0x6,
+	ICM20X_MAG_100_HZ = 0x8,
+
+} icm20x_mag_rate_t;
 
 class Adafruit_ICM20X;
 
@@ -177,8 +189,9 @@ public:
 	Adafruit_ICM20X();
 	~Adafruit_ICM20X();
 
-//	bool begin_SPI(uint8_t cs_pin, SPIClass *theSPI = &SPI,
-//			int32_t sensor_id = 0);
+	bool begin_SPI(SPI_HandleTypeDef *spi_handle, GPIO_TypeDef *cs_port,
+			uint16_t cs_pin,
+			int32_t sensor_id = 0);
 //	bool begin_SPI(int8_t cs_pin, int8_t sck_pin, int8_t miso_pin,
 //			int8_t mosi_pin, int32_t sensor_id = 0);
 
@@ -213,8 +226,13 @@ public:
 	void setI2CBypass(bool bypass_i2c);
 
 	bool writeRegister(uint8_t mem_addr, uint8_t *val, uint16_t size);
-
+	bool enableSPI(bool enable_spi_master);
+	void enableInt1(bool enable);
+	void setInt1Latch(bool latch);
 protected:
+	SPI_HandleTypeDef *spi_han;
+	GPIO_TypeDef *_cs_port;
+	uint16_t _cs_pin;
 	float temperature, ///< Last reading's temperature (C)
 			accX,          ///< Last reading's accelerometer X axis m/s^2
 			accY,          ///< Last reading's accelerometer Y axis m/s^2
@@ -296,6 +314,8 @@ private:
 	bool readRegister(uint16_t mem_addr, uint8_t *dest, uint16_t size);
 	uint8_t readRegisterByte(uint16_t mem_addr);
 	uint8_t readRegisterBits(uint16_t reg, uint8_t pos, uint8_t bits);
+
+	void cs_active(bool state);
 };
 
 #ifdef __cplusplus
