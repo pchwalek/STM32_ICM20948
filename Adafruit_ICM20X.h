@@ -40,12 +40,26 @@ extern "C" {
 #define ICM20X_B0_REG_INT_PIN_CFG 0xF ///< Interrupt config register
 #define ICM20X_B0_REG_INT_ENABLE 0x10 ///< Interrupt enable register 0
 #define ICM20X_B0_REG_INT_ENABLE_1 0x11 ///< Interrupt enable register 1
+#define ICM20X_B0_REG_INT_ENABLE_2 0x12 ///< Interrupt enable register 2
+#define ICM20X_B0_REG_INT_ENABLE_3 0x13 ///< Interrupt enable register 2
+#define ICM20X_B0_REG_INT_STATUS 0x19 ///< Interrupt enable register 2
+
 #define ICM20X_B0_I2C_MST_STATUS                                               \
   0x17 ///< Records if I2C master bus data is finished
 #define ICM20X_B0_REG_BANK_SEL 0x7F ///< register bank selection register
 #define ICM20X_B0_PWR_MGMT_1 0x06   ///< primary power management register
+#define ICM20X_B0_PWR_MGMT_2 0x07   ///< primary power management register
 #define ICM20X_B0_ACCEL_XOUT_H 0x2D ///< first byte of accel data
 #define ICM20X_B0_GYRO_XOUT_H 0x33  ///< first byte of accel data
+
+#define ICM20X_BO_FIFO_EN_1	0x66
+#define ICM20X_BO_FIFO_EN_2 0x67
+#define ICM20X_BO_FIFO_RST 0x68
+#define ICM20X_BO_FIFO_MODE 0x69
+#define ICM20X_BO_FIFO_COUNTH 0x70
+#define ICM20X_BO_FIFO_COUNTL 0x71
+#define ICM20X_BO_FIFO_R_W 0x72
+#define ICM20X_BO_FIFO_CFG 0x76
 
 // Bank 2
 #define ICM20X_B2_GYRO_SMPLRT_DIV 0x00    ///< Gyroscope data rate divisor
@@ -228,7 +242,15 @@ public:
 	bool writeRegister(uint8_t mem_addr, uint8_t *val, uint16_t size);
 	bool enableSPI(bool enable_spi_master);
 	void enableInt1(bool enable);
+	void enableInt2(bool enable);
 	void setInt1Latch(bool latch);
+
+	bool getFIFOcnt(uint16_t *cnt);
+	void clearIntOnRead(bool enable);
+
+	bool getINTstatus(uint8_t *data);
+
+	bool readFIFO(uint8_t *buffer, uint16_t size);
 protected:
 	SPI_HandleTypeDef *spi_han;
 	GPIO_TypeDef *_cs_port;

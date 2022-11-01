@@ -177,27 +177,51 @@ bool Adafruit_ICM20X::_init(int32_t sensor_id) {
 	reset();
 
 	modifyRegisterBit(ICM20X_B0_PWR_MGMT_1, 0, 6); // take out of default sleep state
+//	modifyRegisterMultipleBit(ICM20X_B0_PWR_MGMT_2, 0x7, 0, 3); // disable gyro
+
+
+	_setBank(0);
+	HAL_Delay(1);
+	modifyRegisterBit(ICM20X_BO_FIFO_EN_2, 1, 4); // Enable accelerometer data to be saved to FIFO
+	modifyRegisterBit(ICM20X_BO_FIFO_EN_2, 1, 3); // Enable gyro Z
+	modifyRegisterBit(ICM20X_BO_FIFO_EN_2, 1, 2); // Enable gyro Y
+	modifyRegisterBit(ICM20X_BO_FIFO_EN_2, 1, 1); // Enable gyro X
+	HAL_Delay(1);
+
+	setInt1ActiveLow(true);
+	setInt1Latch(false);
+	clearIntOnRead(true);
+//	enableInt2(true);
 
 	// 3 will be the largest range for either sensor
 	enableGyrolDLPF(true, ICM20X_GYRO_FREQ_196_6_HZ);
 	writeGyroRange(3);
+
 	enableAccelDLPF(true, ICM20X_ACCEL_FREQ_246_0_HZ);
 	writeAccelRange(3);
 
 	// 1.1 kHz/(1+GYRO_SMPLRT_DIV[7:0])
-	setGyroRateDivisor(3); //100hz
+	setGyroRateDivisor(1); //550hz
 
 	// 1.125 kHz/(1+ACCEL_SMPLRT_DIV[11:0])
-	setAccelRateDivisor(2); // 375hz
+	setAccelRateDivisor(1); // 562.5Hz
 
 	temp_sensor = new Adafruit_ICM20X_Temp(this);
 	accel_sensor = new Adafruit_ICM20X_Accelerometer(this);
 	gyro_sensor = new Adafruit_ICM20X_Gyro(this);
 	mag_sensor = new Adafruit_ICM20X_Magnetometer(this);
 
-	setInt1ActiveLow(true);
-	setInt1Latch(false);
-	enableInt1(true);
+	/* ENABLE FIFO */
+	_setBank(0);
+	writeRegisterByte(ICM20X_BO_FIFO_RST, 0x0F); // reset FIFO
+	HAL_Delay(1);
+	writeRegisterByte(ICM20X_BO_FIFO_RST, 0x00);
+	HAL_Delay(1);
+	modifyRegisterBit(ICM20X_B0_USER_CTRL, 1, 6); // Enable FIFO
+
+
+//	HAL_Delay(1);
+//	modifyRegisterBit(ICM20X_B0_REG_INT_ENABLE_3, 1, 3); // Enable FIFO to interrupt on watermark
 
 	HAL_Delay(20);
 
@@ -470,8 +494,12 @@ uint16_t Adafruit_ICM20X::getAccelRateDivisor(void) {
 void Adafruit_ICM20X::setAccelRateDivisor(uint16_t new_accel_divisor) {
 	_setBank(2);
 
+	uint8_t data[2];
+	data[0] = new_accel_divisor >> 8;
+	data[1] = new_accel_divisor & 0xFF;
+
 	new_accel_divisor = new_accel_divisor & 0x07FF;
-	writeRegister(ICM20X_B2_ACCEL_SMPLRT_DIV_1, (uint8_t*) &new_accel_divisor,
+	writeRegister(ICM20X_B2_ACCEL_SMPLRT_DIV_1, data,
 			2);
 	_setBank(0);
 }
@@ -587,7 +615,15 @@ void Adafruit_ICM20X::setInt1Latch(bool latch) {
 
 	_setBank(0);
 
-	modifyRegisterBit(ICM20X_B0_REG_INT_PIN_CFG, latch, 7); //active low
+	modifyRegisterBit(ICM20X_B0_REG_INT_PIN_CFG, latch, 5); //active low
+}
+
+
+void Adafruit_ICM20X::clearIntOnRead(bool enable) {
+
+	_setBank(0);
+
+	modifyRegisterBit(ICM20X_B0_REG_INT_PIN_CFG, enable, 4); //active low
 }
 
 /*!
@@ -601,6 +637,13 @@ void Adafruit_ICM20X::enableInt1(bool enable) {
 	_setBank(0);
 
 	modifyRegisterBit(ICM20X_B0_REG_INT_ENABLE_1, enable, 0);
+}
+
+void Adafruit_ICM20X::enableInt2(bool enable) {
+
+	_setBank(0);
+
+	modifyRegisterBit(ICM20X_B0_REG_INT_ENABLE_2, enable, 0);
 }
 
 ///*!
@@ -809,6 +852,54 @@ void Adafruit_ICM20X::resetI2CMaster(void) {
 //	return ((var & ~mask) | (value << pos));
 //}
 //
+
+bool Adafruit_ICM20X::getFIFOcnt(uint16_t *cnt){
+	uint8_t data[2];
+	*cnt = 0;
+
+	_setBank(0);
+
+	if (readRegister(ICM20X_BO_FIFO_COUNTH,data,2)) {
+		cs_active(false);
+		*cnt = ((data[0] & 0x1F) << 8) | data[1];
+		return true;
+	} else {
+		cs_active(false);
+		return false;
+	}
+
+
+}
+
+bool Adafruit_ICM20X::getINTstatus(uint8_t *data){
+
+	_setBank(0);
+
+	if (readRegister(ICM20X_B0_REG_INT_STATUS,data,4)) {
+		cs_active(false);
+		return true;
+	} else {
+		cs_active(false);
+		return false;
+	}
+
+
+}
+
+
+bool Adafruit_ICM20X::readFIFO(uint8_t *buffer, uint16_t size) {
+	_setBank(0);
+
+	if (readRegister(ICM20X_BO_FIFO_R_W, buffer, size)) {
+		cs_active(false);
+		return true;
+	} else {
+		cs_active(false);
+		return false;
+	}
+}
+
+
 bool Adafruit_ICM20X::readRegister(uint16_t mem_addr, uint8_t *dest,
 		uint16_t size) {
 
@@ -828,7 +919,6 @@ bool Adafruit_ICM20X::readRegister(uint16_t mem_addr, uint8_t *dest,
 		cs_active(false);
 		return false;
 	}
-
 }
 
 uint8_t Adafruit_ICM20X::readRegisterByte(uint16_t mem_addr) {
