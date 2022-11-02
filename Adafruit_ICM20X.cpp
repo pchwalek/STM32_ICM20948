@@ -37,6 +37,8 @@
  * history](https://github.com/adafruit/Adafruit_ICM20X/releases)
  */
 
+// good reference: https://os.mbed.com/teams/SiliconLabs/code/ICM20648/file/296308a935f5/ICM20648.cpp/
+
 #include "Adafruit_ICM20X.h"
 #include "string.h"
 /*!
@@ -193,6 +195,10 @@ bool Adafruit_ICM20X::_init(int32_t sensor_id) {
 	clearIntOnRead(true);
 //	enableInt2(true);
 
+//	_setBank(2);
+//	modifyRegisterMultipleBit(ICM20X_B2_GYRO_CONFIG_2, 0x7, 3, 3); // gyro self test
+//	_setBank(0);
+
 	// 3 will be the largest range for either sensor
 	enableGyrolDLPF(true, ICM20X_GYRO_FREQ_196_6_HZ);
 	writeGyroRange(3);
@@ -217,7 +223,10 @@ bool Adafruit_ICM20X::_init(int32_t sensor_id) {
 	HAL_Delay(1);
 	writeRegisterByte(ICM20X_BO_FIFO_RST, 0x00);
 	HAL_Delay(1);
+	modifyRegisterBit(ICM20X_B0_USER_CTRL, 1, 7); // Enable digital motion processor (dmp)
+	HAL_Delay(1);
 	modifyRegisterBit(ICM20X_B0_USER_CTRL, 1, 6); // Enable FIFO
+
 
 
 //	HAL_Delay(1);

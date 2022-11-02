@@ -64,6 +64,7 @@ extern "C" {
 // Bank 2
 #define ICM20X_B2_GYRO_SMPLRT_DIV 0x00    ///< Gyroscope data rate divisor
 #define ICM20X_B2_GYRO_CONFIG_1 0x01      ///< Gyro config for range setting
+#define ICM20X_B2_GYRO_CONFIG_2 0x01      ///< Gyro config for range setting
 #define ICM20X_B2_ACCEL_SMPLRT_DIV_1 0x10 ///< Accel data rate divisor MSByte
 #define ICM20X_B2_ACCEL_SMPLRT_DIV_2 0x11 ///< Accel data rate divisor LSByte
 #define ICM20X_B2_ACCEL_CONFIG_1 0x14     ///< Accel config for setting range
