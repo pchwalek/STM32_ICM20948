@@ -41,6 +41,13 @@
 
 #include "Adafruit_ICM20X.h"
 #include "string.h"
+
+#include "cmsis_os2.h"
+#define delay osDelay
+
+//#define MAX_FIFO_SIZE	4096
+//static uint8_t tx_data[MAX_FIFO_SIZE + 1] = {0};
+//static uint8_t rx_data[MAX_FIFO_SIZE + 1] = {0};
 /*!
  *    @brief  Instantiates a new ICM20X class!
  */
@@ -98,7 +105,7 @@ bool Adafruit_ICM20X::begin_SPI(SPI_HandleTypeDef *spi_handle,
 	spi_han = spi_handle;
 
 	enableSPI(true);
-
+	delay(1);
 	return _init(sensor_id);
 }
 
@@ -150,12 +157,12 @@ void Adafruit_ICM20X::reset(void) {
 
 	modifyRegisterBit(ICM20X_B0_PWR_MGMT_1, 1, 7);
 
-	HAL_Delay(20);
+	delay(20);
 
 	while (checkRegisterBit(ICM20X_B0_PWR_MGMT_1, 7)) {
-		HAL_Delay(10);
+		delay(10);
 	};
-	HAL_Delay(50);
+	delay(50);
 }
 
 /*!  @brief Initilizes the sensor
@@ -181,18 +188,24 @@ bool Adafruit_ICM20X::_init(int32_t sensor_id) {
 	modifyRegisterBit(ICM20X_B0_PWR_MGMT_1, 0, 6); // take out of default sleep state
 //	modifyRegisterMultipleBit(ICM20X_B0_PWR_MGMT_2, 0x7, 0, 3); // disable gyro
 
-
+	delay(1);
 	_setBank(0);
-	HAL_Delay(1);
+	delay(1);
 	modifyRegisterBit(ICM20X_BO_FIFO_EN_2, 1, 4); // Enable accelerometer data to be saved to FIFO
+	delay(1);
 	modifyRegisterBit(ICM20X_BO_FIFO_EN_2, 1, 3); // Enable gyro Z
+	delay(1);
 	modifyRegisterBit(ICM20X_BO_FIFO_EN_2, 1, 2); // Enable gyro Y
+	delay(1);
 	modifyRegisterBit(ICM20X_BO_FIFO_EN_2, 1, 1); // Enable gyro X
-	HAL_Delay(1);
+	delay(1);
 
 	setInt1ActiveLow(true);
+	delay(1);
 	setInt1Latch(false);
+	delay(1);
 	clearIntOnRead(true);
+	delay(1);
 //	enableInt2(true);
 
 //	_setBank(2);
@@ -201,38 +214,45 @@ bool Adafruit_ICM20X::_init(int32_t sensor_id) {
 
 	// 3 will be the largest range for either sensor
 	enableGyrolDLPF(true, ICM20X_GYRO_FREQ_196_6_HZ);
+	delay(1);
 	writeGyroRange(3);
+	delay(1);
 
 	enableAccelDLPF(true, ICM20X_ACCEL_FREQ_246_0_HZ);
+	delay(1);
 	writeAccelRange(3);
+	delay(1);
 
 	// 1.1 kHz/(1+GYRO_SMPLRT_DIV[7:0])
 	setGyroRateDivisor(1); //550hz
+	delay(1);
 
 	// 1.125 kHz/(1+ACCEL_SMPLRT_DIV[11:0])
 	setAccelRateDivisor(1); // 562.5Hz
+	delay(1);
 
-	temp_sensor = new Adafruit_ICM20X_Temp(this);
-	accel_sensor = new Adafruit_ICM20X_Accelerometer(this);
-	gyro_sensor = new Adafruit_ICM20X_Gyro(this);
-	mag_sensor = new Adafruit_ICM20X_Magnetometer(this);
+//	temp_sensor = new Adafruit_ICM20X_Temp(this);
+//	accel_sensor = new Adafruit_ICM20X_Accelerometer(this);
+//	gyro_sensor = new Adafruit_ICM20X_Gyro(this);
+//	mag_sensor = new Adafruit_ICM20X_Magnetometer(this);
 
 	/* ENABLE FIFO */
 	_setBank(0);
+	delay(1);
 	writeRegisterByte(ICM20X_BO_FIFO_RST, 0x0F); // reset FIFO
-	HAL_Delay(1);
+	delay(1);
 	writeRegisterByte(ICM20X_BO_FIFO_RST, 0x00);
-	HAL_Delay(1);
+	delay(1);
 	modifyRegisterBit(ICM20X_B0_USER_CTRL, 1, 7); // Enable digital motion processor (dmp)
-	HAL_Delay(1);
+	delay(1);
 	modifyRegisterBit(ICM20X_B0_USER_CTRL, 1, 6); // Enable FIFO
 
 
 
-//	HAL_Delay(1);
+//	delay(1);
 //	modifyRegisterBit(ICM20X_B0_REG_INT_ENABLE_3, 1, 3); // Enable FIFO to interrupt on watermark
 
-	HAL_Delay(20);
+//	delay(20);
 
 	return true;
 }
@@ -709,6 +729,7 @@ bool Adafruit_ICM20X::enableI2CMaster(bool enable_i2c_master) {
  */
 bool Adafruit_ICM20X::enableSPI(bool enable_spi_master) {
 	_setBank(0);
+	delay(1);
 
 	return modifyRegisterMultipleBit(ICM20X_B0_USER_CTRL, enable_spi_master, 4,
 			1);
@@ -825,9 +846,9 @@ void Adafruit_ICM20X::resetI2CMaster(void) {
 
 	modifyRegisterBit(ICM20X_B0_USER_CTRL, true, 1);
 	while (checkRegisterBit(ICM20X_B0_USER_CTRL, 1)) {
-		HAL_Delay(10);
+		delay(10);
 	}
-	HAL_Delay(100);
+	delay(100);
 }
 
 /**
@@ -899,7 +920,7 @@ bool Adafruit_ICM20X::getINTstatus(uint8_t *data){
 bool Adafruit_ICM20X::readFIFO(uint8_t *buffer, uint16_t size) {
 	_setBank(0);
 
-	if (readRegister(ICM20X_BO_FIFO_R_W, buffer, size)) {
+	if (readRegister_IT(ICM20X_BO_FIFO_R_W, buffer, size)) {
 		cs_active(false);
 		return true;
 	} else {
@@ -909,11 +930,34 @@ bool Adafruit_ICM20X::readFIFO(uint8_t *buffer, uint16_t size) {
 }
 
 
+bool Adafruit_ICM20X::readRegister_IT(uint16_t mem_addr, uint8_t *dest,
+		uint16_t size) {
+
+	uint8_t spiState;
+
+	tx_data[0] = (mem_addr & 0x7F) | 0x80;
+
+	cs_active(true);
+	if (HAL_OK
+			== HAL_SPI_TransmitReceive_IT(spi_han, tx_data, rx_data, size + 1)) {
+		cs_active(false);
+		spiDataReady(&spiState);
+		if(1 != spiState) return false;
+		memcpy(dest, &rx_data[1], size);
+		return true;
+	} else {
+		cs_active(false);
+		return false;
+	}
+}
+
+
+
 bool Adafruit_ICM20X::readRegister(uint16_t mem_addr, uint8_t *dest,
 		uint16_t size) {
 
-	uint8_t tx_data[size + 1] = {0};
-	uint8_t rx_data[size + 1] = {0};
+//	uint8_t tx_data[size + 1] = {0};
+//	uint8_t rx_data[size + 1] = {0};
 
 	tx_data[0] = (mem_addr & 0x7F) | 0x80;
 
@@ -931,8 +975,8 @@ bool Adafruit_ICM20X::readRegister(uint16_t mem_addr, uint8_t *dest,
 }
 
 uint8_t Adafruit_ICM20X::readRegisterByte(uint16_t mem_addr) {
-	uint8_t tx_data[2];
-	uint8_t rx_data[2];
+//	uint8_t tx_data[2];
+//	uint8_t rx_data[2];
 	tx_data[0] = (mem_addr & 0x7F) | 0x80;
 	tx_data[1] = 0;
 
@@ -955,30 +999,54 @@ bool Adafruit_ICM20X::writeRegister(uint8_t mem_addr, uint8_t *val,
 
 	uint8_t data[1 + size];
 	data[0] = (mem_addr & 0x7F) | 0x00;
+	uint8_t error = 0;
 	memcpy(&data[1], val, size);
 	cs_active(true);
-	if (HAL_OK == HAL_SPI_Transmit(spi_han, data, 1 + size, 10)) {
-		cs_active(false);
-		return true;
-	} else {
-		cs_active(false);
-		return false;
+
+	cs_active(true);
+	while (HAL_OK != HAL_SPI_Transmit(spi_han, data, 1 + size, 10)) {
+		error++;
+		if(error > 5){
+			cs_active(false);
+			return false;
+		}
 	}
+	cs_active(false);
+	return true;
+
+//	if (HAL_OK == HAL_SPI_Transmit(spi_han, data, 1 + size, 10)) {
+//		cs_active(false);
+//		return true;
+//	} else {
+//		cs_active(false);
+//		return false;
+//	}
 }
 
 bool Adafruit_ICM20X::writeRegisterByte(uint8_t mem_addr, uint8_t val) {
 	uint8_t data[2];
 	data[0] = (mem_addr & 0x7F) | 0x00;
 	data[1] = val;
+	uint8_t error = 0;
 
 	cs_active(true);
-	if (HAL_OK == HAL_SPI_Transmit(spi_han, data, 2, 10)) {
-		cs_active(false);
-		return true;
-	} else {
-		cs_active(false);
-		return false;
+	while (HAL_OK != HAL_SPI_Transmit(spi_han, data, 2, 10)) {
+		error++;
+		if(error > 5){
+			cs_active(false);
+			return false;
+		}
 	}
+	cs_active(false);
+	return true;
+//
+//	if (HAL_OK == HAL_SPI_Transmit(spi_han, data, 2, 10)) {
+//		cs_active(false);
+//		return true;
+//	} else {
+//		cs_active(false);
+//		return false;
+//	}
 }
 
 uint8_t Adafruit_ICM20X::modifyBitInByte(uint8_t var, uint8_t value,

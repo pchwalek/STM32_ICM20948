@@ -111,6 +111,8 @@ public:
 	bool setMagDataRate(ak09916_data_rate_t rate);
 	bool getSample(imu_sample* data);
 
+
+
 private:
 //	I2C_HandleTypeDef *i2c_han = NULL;///< Pointer to I2C bus interface
 //	uint8_t i2c_addr = 0;

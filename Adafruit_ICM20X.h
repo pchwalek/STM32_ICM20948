@@ -210,6 +210,9 @@ public:
 //	bool begin_SPI(int8_t cs_pin, int8_t sck_pin, int8_t miso_pin,
 //			int8_t mosi_pin, int32_t sensor_id = 0);
 
+	uint8_t tx_data[4097] = {0};
+	uint8_t rx_data[4097] = {0};
+
 	uint8_t getGyroRateDivisor(void);
 	void setGyroRateDivisor(uint8_t new_gyro_divisor);
 
@@ -252,6 +255,10 @@ public:
 	bool getINTstatus(uint8_t *data);
 
 	bool readFIFO(uint8_t *buffer, uint16_t size);
+	bool readRegister_IT(uint16_t mem_addr, uint8_t *dest, uint16_t size);
+	void (*spiDataReady)(uint8_t *state);
+	bool _init(int32_t sensor_id = 0);
+
 protected:
 	SPI_HandleTypeDef *spi_han;
 	GPIO_TypeDef *_cs_port;
@@ -284,7 +291,6 @@ protected:
 	virtual bool begin_I2C(uint8_t i2c_address, I2C_HandleTypeDef *i2c_handle,
 			int32_t sensor_id);
 	// virtual bool _init(int32_t sensor_id);
-	bool _init(int32_t sensor_id);
 	int16_t rawAccX, ///< temp variables
 			rawAccY,     ///< temp variables
 			rawAccZ,     ///< temp variables
