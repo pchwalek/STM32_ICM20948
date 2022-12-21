@@ -165,6 +165,8 @@ void Adafruit_ICM20X::reset(void) {
 	delay(50);
 }
 
+
+
 /*!  @brief Initilizes the sensor
  *   @param sensor_id Optional unique ID for the sensor set
  *   @returns True if chip identified and initialized
