@@ -109,6 +109,29 @@ bool Adafruit_ICM20X::begin_SPI(SPI_HandleTypeDef *spi_handle,
 	return _init(sensor_id);
 }
 
+void Adafruit_ICM20X::updateGyroSettings(uint8_t gyroLPFEn, uint8_t gyroLPFCutoff,
+		uint8_t gyroRange, uint8_t gyroSampleRate) {
+
+	_gyroLPFEn = gyroLPFEn;
+	_gyroLPFCutoff = gyroLPFCutoff;
+	_gyroRange = gyroRange;
+	_gyroSampleRate = gyroSampleRate;
+
+	return;
+}
+
+void Adafruit_ICM20X::updateAccelSettings(uint8_t accelLPFEn, uint8_t accelLPFCutoff,
+		uint8_t accelRange, uint8_t accelSampleRate) {
+
+	_accelLPFEn = accelLPFEn;
+	_accelLPFCutoff = accelLPFCutoff;
+	_accelRange = accelRange;
+	_accelSampleRate = accelSampleRate;
+
+	return;
+}
+
+
 void Adafruit_ICM20X::cs_active(bool state) {
 	if (state) {
 		HAL_GPIO_WritePin(_cs_port, _cs_pin, GPIO_PIN_RESET);
@@ -215,22 +238,23 @@ bool Adafruit_ICM20X::_init(int32_t sensor_id) {
 //	_setBank(0);
 
 	// 3 will be the largest range for either sensor
-	enableGyrolDLPF(true, ICM20X_GYRO_FREQ_196_6_HZ);
+
+	enableGyrolDLPF(_gyroLPFEn, (icm20x_gyro_cutoff_t) _gyroLPFCutoff);
 	delay(1);
-	writeGyroRange(3);
+	writeGyroRange(_gyroRange);
 	delay(1);
 
-	enableAccelDLPF(true, ICM20X_ACCEL_FREQ_246_0_HZ);
+	enableAccelDLPF(_accelLPFEn, (icm20x_accel_cutoff_t) _accelLPFCutoff);
 	delay(1);
-	writeAccelRange(3);
+	writeAccelRange(_accelRange);
 	delay(1);
 
 	// 1.1 kHz/(1+GYRO_SMPLRT_DIV[7:0])
-	setGyroRateDivisor(1); //550hz
+	setGyroRateDivisor(_gyroSampleRate); //550hz
 	delay(1);
 
 	// 1.125 kHz/(1+ACCEL_SMPLRT_DIV[11:0])
-	setAccelRateDivisor(1); // 562.5Hz
+	setAccelRateDivisor(_accelSampleRate); // 562.5Hz
 	delay(1);
 
 //	temp_sensor = new Adafruit_ICM20X_Temp(this);
@@ -248,7 +272,6 @@ bool Adafruit_ICM20X::_init(int32_t sensor_id) {
 	modifyRegisterBit(ICM20X_B0_USER_CTRL, 1, 7); // Enable digital motion processor (dmp)
 	delay(1);
 	modifyRegisterBit(ICM20X_B0_USER_CTRL, 1, 6); // Enable FIFO
-
 
 
 //	delay(1);

@@ -210,6 +210,12 @@ public:
 //	bool begin_SPI(int8_t cs_pin, int8_t sck_pin, int8_t miso_pin,
 //			int8_t mosi_pin, int32_t sensor_id = 0);
 
+	void updateGyroSettings(uint8_t gyroLPFEn, uint8_t _accelLPFCutoff,
+			uint8_t gyroRange, uint8_t gyroSampleRate);
+
+	void updateAccelSettings(uint8_t accelLPFEn, uint8_t _accelLPFCutoff,
+			uint8_t accelRange, uint8_t accelSampleRate);
+
 	uint8_t tx_data[4097] = {0};
 	uint8_t rx_data[4097] = {0};
 
@@ -343,6 +349,15 @@ private:
 	bool readRegister(uint16_t mem_addr, uint8_t *dest, uint16_t size);
 	uint8_t readRegisterByte(uint16_t mem_addr);
 	uint8_t readRegisterBits(uint16_t reg, uint8_t pos, uint8_t bits);
+
+	uint8_t _gyroLPFEn = 1;
+	uint8_t _accelLPFCutoff = ICM20X_GYRO_FREQ_196_6_HZ;
+	uint8_t _gyroRange = 3;
+	uint8_t _gyroSampleRate = 1;
+	uint8_t _accelLPFEn = 1;
+	uint8_t _gyroLPFCutoff = ICM20X_ACCEL_FREQ_246_0_HZ;
+	uint8_t _accelRange = 3;
+	uint16_t _accelSampleRate = 1;
 
 	void cs_active(bool state);
 };
